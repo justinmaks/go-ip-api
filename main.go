@@ -9,6 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// VisitLog represents a log entry for each visit to the "/" endpoint
+type VisitLog struct {
+	IP      string `json:"ip"`
+	Country string `json:"country"`
+}
+
+var visitLogs []VisitLog
+
 func main() {
 	router := gin.Default()
 
@@ -25,12 +33,23 @@ func main() {
 			return
 		}
 
+		// Create a new log entry and add it to the visitLogs slice
+		visitLogs = append(visitLogs, VisitLog{
+			IP:      ip,
+			Country: location.CountryName,
+		})
+
 		c.JSON(http.StatusOK, gin.H{
 			"ip":      ip,
 			"country": location.CountryName,
 			"region":  location.RegionName,
 			"city":    location.City,
 		})
+	})
+
+	// Endpoint to retrieve all visit logs
+	router.GET("/visits", func(c *gin.Context) {
+		c.JSON(http.StatusOK, visitLogs)
 	})
 
 	// Start the server
