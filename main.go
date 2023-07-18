@@ -16,6 +16,8 @@ type VisitLog struct {
 }
 
 var visitLogs []VisitLog
+var usRequestCounter int
+var nonUSRequestCounter int
 
 func main() {
 	router := gin.Default()
@@ -31,6 +33,13 @@ func main() {
 				"error": "Internal Server Error",
 			})
 			return
+		}
+
+		// Increment the appropriate counter based on the country
+		if location.CountryName == "United States" {
+			usRequestCounter++
+		} else {
+			nonUSRequestCounter++
 		}
 
 		// Create a new log entry and add it to the visitLogs slice
@@ -50,6 +59,14 @@ func main() {
 	// Endpoint to retrieve all visit logs
 	router.GET("/visits", func(c *gin.Context) {
 		c.JSON(http.StatusOK, visitLogs)
+	})
+
+	// New endpoint to get statistics for US and non-US requests
+	router.GET("/stats", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"us_requests":     usRequestCounter,
+			"non_us_requests": nonUSRequestCounter,
+		})
 	})
 
 	// Start the server
