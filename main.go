@@ -9,6 +9,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,6 +39,12 @@ func main() {
 	}
 
 	router := gin.Default()
+
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowMethods = []string{"GET", "POST"}
+	config.AllowHeaders = []string{"Origin"}
+	router.Use(cors.New(config))
 
 	// Route handler for getting the user's IP address and location information
 	router.GET("/", handleRoot)
