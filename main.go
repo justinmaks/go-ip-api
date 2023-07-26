@@ -20,8 +20,8 @@ type VisitLog struct {
 }
 
 type LocationInfo struct {
+	CountryCode string `json:"country_code"`
 	CountryName string `json:"country_name"`
-	RegionName  string `json:"region_name"`
 	City        string `json:"city"`
 }
 
@@ -33,9 +33,9 @@ var counterMutex = &sync.Mutex{} // Mutex to avoid race condition when increment
 
 func main() {
 	// Load API Key at start
-	apiKey = os.Getenv("IPSTACK_API_KEY")
+	apiKey = os.Getenv("GEOLOCATION_DB_API_KEY")
 	if apiKey == "" {
-		log.Fatal("IPSTACK_API_KEY not set")
+		log.Fatal("GEOLOCATION_DB_API_KEY not set")
 	}
 
 	router := gin.Default()
@@ -76,7 +76,7 @@ func handleRoot(c *gin.Context) {
 	}
 
 	// Increment the appropriate counter based on the country
-	if location.CountryName == "United States" {
+	if location.CountryCode == "US" {
 		counterMutex.Lock() // Avoid race condition when incrementing
 		usRequestCounter++
 		counterMutex.Unlock()
@@ -95,7 +95,6 @@ func handleRoot(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"ip":      ip,
 		"country": location.CountryName,
-		"region":  location.RegionName,
 		"city":    location.City,
 	})
 }
@@ -115,7 +114,7 @@ func handleStats(c *gin.Context) {
 }
 
 func getLocationInfo(ctx context.Context, ip string, locationCh chan<- *LocationInfo, errCh chan<- error) {
-	url := fmt.Sprintf("http://api.ipstack.com/%s?access_key=%s", ip, apiKey)
+	url := fmt.Sprintf("https://geolocation-db.com/json/%s?api_key=%s", ip, apiKey)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		errCh <- err
