@@ -1,21 +1,27 @@
-FROM golang:1.20-alpine
+# Start from the latest golang base image
+FROM golang:latest
 
-# Set the working directory inside the container
+# Add Maintainer Info
+LABEL maintainer="Your Name <your-email@example.com>"
+
+# Set the Current Working Directory inside the container
 WORKDIR /app
 
-# Copy the Go project files to the container's working directory
+# Copy go mod and sum files
+COPY go.mod go.sum ./
+
+# Download all dependencies. 
+# Dependencies will be cached if the go.mod and go.sum files are not changed
+RUN go mod download
+
+# Copy the source from the current directory to the Working Directory inside the container
 COPY . .
 
-# Install necessary dependencies
-RUN go get -u github.com/gin-gonic/gin
-RUN go get -u github.com/oschwald/geoip2-golang
-RUN go get -u github.com/oschwald/maxminddb-golang
-
-# Build the Go application
+# Build the Go app
 RUN go build -o main .
 
-# Expose the port the application listens on
+# Expose port 8080 to the outside world
 EXPOSE 8080
 
-# Command to run the application when the container starts
+# Command to run the executable
 CMD ["./main"]
